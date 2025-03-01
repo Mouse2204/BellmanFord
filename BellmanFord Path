@@ -1,0 +1,49 @@
+
+// Reconstruct path for Bellman-Ford
+string BF_Path(int graph[30][30], int num_v, char start_vertex, char goal_vertex) {
+    int BFval[30];  // Mảng chứa giá trị các đỉnh
+    int BFcur[30];    // Mảng chứa các đỉnh trước đó
+
+    string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int start = alphabet.find(start_vertex);
+    int goal= alphabet.find(goal_vertex);
+
+    // Khởi tạo mảng BFval và BFcur
+    for (int i = 0; i < num_v; i++) {
+        BFval[i] = -1;
+        BFcur[i] = -1;
+    }
+
+    // Bellman-Ford algorithm: relax edges num_v - 1 times
+    for (int i = 0; i < num_v - 1; i++) {
+        BF(graph, num_v, start_vertex, BFval, BFcur);
+    }
+
+    // Reconstruct the path
+    string path = "";
+    int current = goal;
+
+    // Trace back from goal to start
+    while (current != start && current != -1) {
+        path = (char)(current + 'A') + path;  // Chèn ký tự vào đầu chuỗi path
+        current = BFcur[current];
+    }
+
+    // Nếu không có đường đi
+    if (current == -1) {
+        return "No path found!";
+    }
+
+    // Bao gồm đỉnh start_vertex
+    path = start_vertex + path;
+    string result = "";
+    for (size_t i = 0; i < path.length(); i++) {
+        result += path[i];  // Thêm ký tự
+        if (i < path.length() - 1) {
+            result += " ";  // Thêm dấu cách nếu không phải ký tự cuối
+        }
+    }
+
+    return result;
+}
+
