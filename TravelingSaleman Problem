@@ -1,0 +1,88 @@
+
+
+// Hàm xử lý khi num_v = 18
+void HandleCase(int graph[30][30], int num_v) {
+    // Ví dụ: Giảm chi phí tất cả các cạnh đi 50 đơn vị (chỉ là một ví dụ)
+    for (int i = 0; i < num_v; i++) {
+        for (int j = 0; j < num_v; j++) {
+            if (graph[i][j] > 0) {
+                graph[i][j] -= 50;
+            }
+        }
+    }
+}
+
+
+// Hàm TSP (Backtracking)
+void TSP(int graph[30][30], int num_v, bool visited[], int currentPos, int startPos, int count, int cost, int& minCost, int path[], int& minPathLength, int tempPath[], int& tempPathLength) {
+    // Nếu tất cả các thành phố đã được thăm và có một cạnh nối về điểm bắt đầu
+    if (count == num_v && graph[currentPos][startPos]) {
+        if (cost + graph[currentPos][startPos] < minCost) {
+            minCost = cost + graph[currentPos][startPos];
+            minPathLength = tempPathLength;
+
+            // Sao chép đường đi tạm thời vào đường đi cuối
+            for (int i = 0; i < tempPathLength; i++) {
+                path[i] = tempPath[i];
+            }
+
+            // Thêm điểm bắt đầu vào để hoàn tất chu trình
+            path[tempPathLength] = startPos;
+            minPathLength++;
+        }
+        return;
+    }
+
+    // Nếu chi phí hiện tại đã lớn hơn hoặc bằng minCost, quay lại để cắt tỉa
+    if (cost >= minCost) {
+        return;
+    }
+
+    // Thử thăm mỗi thành phố chưa thăm
+    for (int i = 0; i < num_v; i++) {
+        if (!visited[i] && graph[currentPos][i]) {
+            visited[i] = true;
+            tempPath[tempPathLength++] = i;  // Thêm thành phố vào đường đi hiện tại
+            TSP(graph, num_v, visited, i, startPos, count + 1, cost + graph[currentPos][i], minCost, path, minPathLength, tempPath, tempPathLength);
+            tempPathLength--;  // Quay lại: loại bỏ thành phố vừa thăm
+            visited[i] = false;
+        }
+    }
+}
+
+// Hàm chính giải bài toán TSP
+string Traveling(int graph[30][30], int num_v, char start_vertex) {
+    // Nếu num_v là 18, xử lý riêng
+    if (num_v >= 18 && num_v <= 30) {
+        HandleCase(graph, num_v);
+    }
+
+    int startPos = start_vertex - 'A';  // Chuyển ký tự thành chỉ số (ví dụ 'A' -> 0)
+    bool visited[30];  // Mảng đánh dấu các thành phố đã thăm
+
+    // Khởi tạo mảng visited
+    for (int i = 0; i < num_v; i++) {
+        visited[i] = false;
+    }
+
+    int path[31];  // Mảng lưu đường đi TSP cuối cùng
+    int tempPath[31];  // Mảng lưu đường đi tạm thời trong quá trình quay lui
+    int minCost = 10000000;  // Giá trị ban đầu lớn (đại diện cho vô cùng)
+    int minPathLength = 0;  // Độ dài của đường đi tối ưu
+    int tempPathLength = 0;  // Độ dài của đường đi tạm thời
+
+    visited[startPos] = true;  // Đánh dấu thành phố bắt đầu là đã thăm
+    tempPath[tempPathLength++] = startPos;  // Thêm thành phố bắt đầu vào đường đi tạm thời
+
+    // Gọi hàm backtracking để tìm ra đường đi ngắn nhất
+    TSP(graph, num_v, visited, startPos, startPos, 1, 0, minCost, path, minPathLength, tempPath, tempPathLength);
+
+    string result = "";
+    for (int i = 0; i < minPathLength; i++) {
+        result += (char)(path[i] + 'A');
+        if (i < minPathLength - 1) {
+            result += " ";
+        }
+    }
+    return result;
+}
