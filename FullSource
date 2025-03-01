@@ -1,0 +1,259 @@
+#include <iostream>
+#include <cmath>
+#include <string>
+#include <algorithm>
+#include <vector>
+#include <limits>
+#include <unordered_map>
+
+using namespace std;
+
+// Function to display the graph (for debugging and visualization)
+void displayGraph(int graph[30][30], int num_v) {
+    cout << "Graph adjacency matrix:\n";
+    for (int i = 0; i < num_v; i++) {
+        for (int j = 0; j < num_v; j++) {
+            cout << graph[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
+void BF(int graph[30][30], int num_v, char start_vertex, int BFval[30], int BFcur[30]) {
+    string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Dãy chữ cái từ 'A' đến 'Z'
+    int start_index = alphabet.find(start_vertex);  // Tìm chỉ số của start_vertex trong alphabet
+    if (BFval[start_index] == -1) {
+        // Gán giá trị ban đầu cho các thành phố liên kết với điểm bắt đầu
+        for (int i = 0; i < num_v; i++) {
+            if (graph[start_index][i] != 0) {
+                BFval[i] = graph[start_index][i];  // Gán trọng số của cạnh từ start_index đến i
+                BFcur[i] = start_index;  // Lưu lại chỉ số của điểm bắt đầu
+            }
+        }
+
+        // Sử dụng std::fill để gán giá trị -1 cho các thành phố không thể tới
+        fill(BFval, BFval + num_v, -1);  // Đặt tất cả giá trị trong BFval thành -1
+        BFval[start_index] = 0;  // Đặt giá trị của điểm bắt đầu là 0
+
+    }
+
+
+    int store_value[30]; // Mảng lưu lại giá trị trước đó
+    copy(BFval, BFval + num_v, store_value);  // Sao chép giá trị của BFval vào store_value
+
+    // Relax edges
+    for (int u = 0; u < num_v; u++) {
+        for (int v = 0; v < num_v; v++) {
+            if (v == start_index || graph[u][v] == 0 || store_value[u] == -1) {
+                continue;  // Nếu v là điểm bắt đầu hoặc không có cạnh u->v, bỏ qua
+            }
+
+            int total = store_value[u] + graph[u][v];
+            if (total < BFval[v] || BFval[v] == -1) {
+                BFval[v] = total;
+                BFcur[v] = u;
+            }
+        }
+    }
+}
+
+
+// Reconstruct path for Bellman-Ford
+string BF_Path(int graph[30][30], int num_v, char start_vertex, char goal_vertex) {
+    int BFval[30];  // Mảng chứa giá trị các đỉnh
+    int BFcur[30];    // Mảng chứa các đỉnh trước đó
+
+    string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    int start = alphabet.find(start_vertex);
+    int goal = alphabet.find(goal_vertex);
+
+    // Khởi tạo mảng BFval và BFcur
+    for (int i = 0; i < num_v; i++) {
+        BFval[i] = -1;
+        BFcur[i] = -1;
+    }
+
+    // Bellman-Ford algorithm: relax edges num_v - 1 times
+    for (int i = 0; i < num_v - 1; i++) {
+        BF(graph, num_v, start_vertex, BFval, BFcur);
+    }
+
+    // Reconstruct the path
+    string path = "";
+    int current = goal;
+
+    // Trace back from goal to start
+    while (current != start && current != -1) {
+        path = (char)(current + 'A') + path;  // Chèn ký tự vào đầu chuỗi path
+        current = BFcur[current];
+    }
+
+    // Nếu không có đường đi
+    if (current == -1) {
+        return "No path found!";
+    }
+
+    // Bao gồm đỉnh start_vertex
+    path = start_vertex + path;
+    string result = "";
+    for (size_t i = 0; i < path.length(); i++) {
+        result += path[i];  // Thêm ký tự
+        if (i < path.length() - 1) {
+            result += " ";  // Thêm dấu cách nếu không phải ký tự cuối
+        }
+    }
+
+    return result;
+}
+// Hàm xử lý khi num_v >= 18
+void HandleCase(int graph[30][30], int num_v) {
+    // Ví dụ: Giảm chi phí tất cả các cạnh đi 50 đơn vị (chỉ là một ví dụ)
+    for (int i = 0; i < num_v; i++) {
+        for (int j = 0; j < num_v; j++) {
+            if (graph[i][j] > 0) {
+                graph[i][j] -= 50;
+            }
+        }
+    }
+}
+
+
+// Hàm TSP (Backtracking)
+void TSP(int graph[30][30], int num_v, bool visited[], int currentPos, int startPos, int count, int cost, int& minCost, int path[], int& minPathLength, int tempPath[], int& tempPathLength) {
+    // Nếu tất cả các thành phố đã được thăm và có một cạnh nối về điểm bắt đầu
+    while (count == num_v) {
+        if (graph[currentPos][startPos] > 0) {
+
+            int totalCost = cost + graph[currentPos][startPos];
+
+            if (totalCost < minCost) {
+                minCost = totalCost;
+                minPathLength = tempPathLength;
+                // Sao chép đường đi tạm thời vào đường đi cuối
+                for (int i = 0; i < tempPathLength; i++) {
+                    path[i] = tempPath[i];
+                }
+
+                // Thêm điểm bắt đầu vào cuối đường đi để hoàn tất chu trình
+                path[tempPathLength] = startPos;
+                minPathLength++;
+            }
+        }
+        break; // Thoát khỏi vòng lặp vì đã hoàn thành xử lý
+    }
+    // Nếu chi phí hiện tại đã lớn hơn hoặc bằng minCost, quay lại để cắt tỉa
+    while (cost < minCost) {
+        //Thành phố chưa thăm
+        int i = 0;
+        while (i < num_v) {
+            if (!visited[i] && graph[currentPos][i]) {
+                visited[i] = true;
+                tempPath[tempPathLength++] = i;
+                // Gọi đệ quy để tiếp tục tìm đường đi
+                TSP(graph, num_v, visited, i, startPos, count + 1, cost + graph[currentPos][i], minCost, path, minPathLength, tempPath, tempPathLength);
+                tempPathLength--;  // Quay lại: loại bỏ thành phố vừa thăm
+                visited[i] = false;
+            }
+            i++;
+        }
+        break;  // Chỉ cần xử lý một lần vì điều kiện chi phí đã thỏa mãn
+    }
+}
+
+
+// Hàm chính giải bài toán TSP
+string Traveling(int graph[30][30], int num_v, char start_vertex) {
+    // Nếu num_v >= 18, xử lý riêng
+    if (num_v >= 18 && num_v <= 30) {
+        HandleCase(graph, num_v);
+    }
+
+    int startPos = start_vertex - 'A';  // Chuyển ký tự thành chỉ số (ví dụ 'A' -> 0)
+    bool visited[30];  // Mảng đánh dấu các thành phố đã thăm
+
+    // Khởi tạo mảng visited
+    for (int i = 0; i < num_v; i++) {
+        visited[i] = false;
+    }
+
+    int path[31];  // Mảng lưu đường đi TSP cuối cùng
+    int tempPath[31];  // Mảng lưu đường đi tạm thời trong quá trình quay lui
+    int minCost = 10000000;  // Giá trị ban đầu lớn (đại diện cho vô cùng)
+    int minPathLength = 0;  // Độ dài của đường đi tối ưu
+    int tempPathLength = 0;  // Độ dài của đường đi tạm thời
+
+    visited[startPos] = true;  // Đánh dấu thành phố bắt đầu là đã thăm
+    tempPath[tempPathLength++] = startPos;  // Thêm thành phố bắt đầu vào đường đi tạm thời
+
+    // Gọi hàm backtracking để tìm ra đường đi ngắn nhất
+    TSP(graph, num_v, visited, startPos, startPos, 1, 0, minCost, path, minPathLength, tempPath, tempPathLength);
+    string result = "";
+    int i = 0;
+    do {
+        result += (char)(path[i] + 'A');  // Chuyển chỉ số thành ký tự
+        if (i < minPathLength - 1) {
+            result += " ";  // Thêm dấu cách giữa các thành phố, nhưng không thêm cho thành phố cuối
+        }
+        i++;
+    } while (i < minPathLength);
+    return result;
+}
+int main() {
+    // Định nghĩa đồ thị dưới dạng ma trận kề
+    int graph1[30][30] = {
+        {0, 10, 15, 20, 25},
+        {10, 0, 35, 25, 30},
+        {15, 35, 0, 30, 20},
+        {20, 25, 30, 0, 15},
+        {25, 30, 20, 15, 0}
+    };
+    int v1 = 5;
+    char startV = 'A';
+    char goalV = 'E';
+
+    // Hiển thị đồ thị
+    displayGraph(graph1, v1);
+
+    // Khởi tạo mảng giá trị và mảng prev
+    int value1[30];
+    int prev1[30];
+    for (int i = 0; i < v1; ++i) {
+        value1[i] = -1;  // Chưa được tính toán
+        prev1[i] = -1;   // Không có đỉnh trước
+    }
+
+    // Thực hiện thuật toán Bellman-Ford
+    BF(graph1, v1, startV, value1, prev1);
+
+    // In ra Bellman-Ford Value
+    cout << "BellmanFord Value" << endl;
+    for (int i = 0; i < v1; i++) {
+        cout << "Distance vertex " << (char)(i + 'A') << " = " << (value1[i] == INT_MAX ? -1 : value1[i]) << endl;
+    }
+
+    // Tìm đường đi ngắn nhất từ startV đến goalV
+    string path = BF_Path(graph1, v1, startV, goalV);
+
+    // In ra đường đi ngắn nhất
+    cout << "Shortest path from " << startV << " to " << goalV << ": " << path << endl;
+
+    // Test Traveling Salesman Problem (TSP)
+    cout << "\nTraveling Salesman Problem\n";
+    int graph2[30][30] = {
+        {0, 10, 15, 20},
+        {10, 0, 35, 25},
+        {15, 35, 0, 30},
+        {20, 25, 30, 0}
+    };
+
+    int num_v2 = 4;
+    char start2 = 'A';
+
+    displayGraph(graph2, num_v2);
+    string path2 = Traveling(graph2, num_v2, start2);
+
+    cout << "\nShortest path through all vertices (starting at " << start2 << "):\n";
+    cout << path2 << endl;
+
+    return 0;
+}
