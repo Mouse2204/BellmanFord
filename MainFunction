@@ -1,0 +1,59 @@
+int main() {
+    // Định nghĩa đồ thị dưới dạng ma trận kề
+    int graph1[30][30] = {
+        {0, 10, 15, 20, 25},
+        {10, 0, 35, 25, 30},
+        {15, 35, 0, 30, 20},
+        {20, 25, 30, 0, 15},
+        {25, 30, 20, 15, 0}
+    };
+    int v1 = 5;
+    char startV = 'A';
+    char goalV = 'E';
+
+    // Hiển thị đồ thị
+    displayGraph(graph1, v1);
+
+    // Khởi tạo mảng giá trị và mảng prev
+    int value1[30];
+    int prev1[30];
+    for (int i = 0; i < v1; ++i) {
+        value1[i] = -1;  // Chưa được tính toán
+        prev1[i] = -1;   // Không có đỉnh trước
+    }
+
+    // Thực hiện thuật toán Bellman-Ford
+    BF(graph1, v1, startV, value1, prev1);
+
+    // In ra Bellman-Ford Value
+    cout << "BellmanFord Value" << endl;
+    for (int i = 0; i < v1; i++) {
+        cout << "Distance vertex " << (char)(i + 'A') << " = " << (value1[i] == INT_MAX ? -1 : value1[i]) << endl;
+    }
+
+    // Tìm đường đi ngắn nhất từ startV đến goalV
+    string path = BF_Path(graph1, v1, startV, goalV);
+
+    // In ra đường đi ngắn nhất
+    cout << "Shortest path from " << startV << " to " << goalV << ": " << path << endl;
+
+    // Test Traveling Salesman Problem (TSP)
+    cout << "\nTraveling Salesman Problem\n";
+    int graph2[30][30] = {
+        {0, 10, 15, 20},
+        {10, 0, 35, 25},
+        {15, 35, 0, 30},
+        {20, 25, 30, 0}
+    };
+
+    int num_v2 = 4;
+    char start2 = 'A';
+
+    displayGraph(graph2, num_v2);
+    string path2 = Traveling(graph2, num_v2, start2);
+
+    cout << "\nShortest path through all vertices (starting at " << start2 << "):\n";
+    cout << path2 << endl;
+
+    return 0;
+}
