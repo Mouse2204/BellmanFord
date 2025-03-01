@@ -1,0 +1,38 @@
+void BF(int graph[30][30], int num_v, char start_vertex, int BFval[30], int BFcur[30]) {
+    string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";  // Dãy chữ cái từ 'A' đến 'Z'
+    int start_index = alphabet.find(start_vertex);  // Tìm chỉ số của start_vertex trong alphabet
+
+ if (BFval[start_index] == -1) {
+    // Gán giá trị ban đầu cho các thành phố liên kết với điểm bắt đầu
+    for (int i = 0; i < num_v; i++) {
+        if (graph[start_index][i] != 0) {
+            BFval[i] = graph[start_index][i];  // Gán trọng số của cạnh từ start_index đến i
+            BFcur[i] = start_index;  // Lưu lại chỉ số của điểm bắt đầu
+        }
+    }
+
+    // Sử dụng std::fill để gán giá trị -1 cho các thành phố không thể tới
+    fill(BFval, BFval + num_v, -1);  // Đặt tất cả giá trị trong BFval thành -1
+    BFval[start_index] = 0;  // Đặt giá trị của điểm bắt đầu là 0
+
+}
+
+
+int store_value[30]; // Mảng lưu lại giá trị trước đó
+copy(BFval, BFval + num_v, store_value);  // Sao chép giá trị của BFval vào store_value
+
+// Relax edges
+for (int u = 0; u < num_v; u++) {
+    for (int v = 0; v < num_v; v++) {
+        if (v == start_index || graph[u][v] == 0 || store_value[u] == -1) {
+            continue;  // Nếu v là điểm bắt đầu hoặc không có cạnh u->v, bỏ qua
+        }
+
+        int total = store_value[u] + graph[u][v];
+        if (total < BFval[v] || BFval[v] == -1) {
+            BFval[v] = total;
+            BFcur[v] = u;
+        }
+    }
+}
+}
